@@ -54,3 +54,10 @@ end
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem 'pg'
+gem 'curb'
+gem 'nokogiri'
+gem 'byebug'
+gem 'irb'
+gem 'eventmachine'
+gem 'em-http-request'
+#gem 'fiber'
