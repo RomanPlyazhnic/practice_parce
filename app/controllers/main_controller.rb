@@ -15,7 +15,7 @@ class MainController < ApplicationController
     #Genre.create(seinen: true)
     #anime = Anime.create(name: "K-ON", genre: Genre.create(seinen: true))
     #anime.category.create(seinen: true)
-    @tests = Test.all
     animes = Anime.all
+    @tests = Test.all    
   end
 end

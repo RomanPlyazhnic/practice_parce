@@ -76,7 +76,7 @@ class Parser
         Thread.current.exit if num_page > @count_pages 
         
         begin
-            anime_links = Nokogiri::HTML(page).xpath("//ul[@class='cardDeck cardGrid']//li//a")
+            anime_links = Nokogiri::HTML(page).xpath("//ul[@class='cardDeck cardGrid']//li//a")[0..2]
         rescue
             puts 'Ошибка в получении аниме'
         end
@@ -86,17 +86,36 @@ class Parser
                 href = "https://www.anime-planet.com#{anime_link.attr('href')}"
                 parseAnime(href)
             rescue
-                puts 'Ошибка в ссылке на аниме'
+                puts 'Ошибка в аниме'
             end
         end
     end
 
     def parseAnime(href)
         anime_page = @page_downloader.download(href)
+        top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
+        main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
 
+        # название
+        name = anime_page.xpath("//h1[@itemprop='name']").first.content
+        puts name
+
+        # тип
+        kind = top_section.xpath("//span[@class='type']").first.content
+        
+        # студия
+        studio = top_section.xpath("//div[@class='pure-1 md-1-5'][position()=1]").first.content.strip
+        
+        # год
+        year = top_section.xpath("//div[@class='pure-1 md-1-5']/span[@class='iconYear']").first.content.strip
+        
+        # ранг
+        reg_rank = /\d+/m
+        rank = top_section.xpath("//div[@class='pure-1 md-1-5'][last()]").first.content.scan(reg_rank).first
+        
         # жанры
         basic_genres = Array.new
-        genres = anime_page.xpath("//li[@itemprop='genre']/a")
+        genres = main_section.xpath("//li[@itemprop='genre']/a")
 
         genres.each do |genre_el|
             genre = genre_el.content.strip
@@ -104,6 +123,30 @@ class Parser
             basic_genres.push(genre) if GENRES.include?(genre)
         end
 
-        
+        # изображение
+        src = main_section.xpath("//img[@class='screenshots']").first.attr('src')
+        image_href = "https://www.anime-planet.com#{src}"
+
+        # описание
+        description = main_section.xpath("//div[@itemprop='description']/p").first.content
+
+        # запись в базу данных
+        genres_hash = Hash.new
+
+        basic_genres.each do |genre|
+            genres_hash[genre.gsub(/ /, '_').to_sym] = true
+        end
+
+        db_genres = Genre.create(genres_hash)
+        anime = Anime.create(
+            name: name,
+            kind: kind,
+            studio: studio,
+            year: year,
+            rank: rank,
+            image_href: image_href,
+            description: description,
+            genre: db_genres
+        )
     end
 end
