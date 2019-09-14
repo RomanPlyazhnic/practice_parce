@@ -3,28 +3,38 @@ require 'em-http-request'
 require 'eventmachine'
 
 class Parser
-    def parse(page_downloader, href)
-        count_process = 4
-        @page_downloader = page_downloader
-        #searchPages(href, number_page)
+    COUNT_PROCESS = 4
+    GENRES = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
+        'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
+        'Josei', 'Magical girl', 'Mecha', 'Mystery', 'Reverse Harem',
+        'Romance', 'Sci Fi', 'Seinen', 'Shoujo', 'Shoujo-ai',
+        'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
+        'Yuri']
 
-        for num_proc in (1..count_process) do 
+    def parse(page_downloader, href)        
+        @page_downloader = page_downloader
+        @count_pages = searchCountPages(href + 1.to_s)          
+        @count_pages = 1        
+        count_pages_for_process = @count_pages / 4
+
+        for num_proc in (1..COUNT_PROCESS) do 
             fork do            
                 threads = []  
+
                 EM.run {
                     multi = EM::MultiRequest.new
 
-                    for i in (0..1)
+                    for i in (0..count_pages_for_process)
                         num_page = (4 * i) + num_proc
                         puts "Process №#{num_proc}, page №#{num_page}"
-                        http = EM::HttpRequest.new(href + num_page.to_s).get #:query => {'XXX'}
+                        http = EM::HttpRequest.new(href + num_page.to_s).get
+
                         http.callback {
                             threads << Thread.new do
                                 searchAnimes(http.response, num_proc, num_page)
                             end
-                            #puts "Process №#{num_proc}, page №#{num_page}"
-                            #puts http.response
                         }
+
                         http.errback {p 'Error loading page'; EM.stop}
                         multi.add i, http
                     end
@@ -46,37 +56,54 @@ class Parser
         puts "КОНЕЦ!!!!!"
     end
 
-    def searchPages(href, number_page)        
-        result_href = href + number_page.to_s
-
-        puts "страница № #{number_page}"
-        page = @page_downloader.download(result_href)
+    def searchCountPages(href)
+        begin
+            page = @page_downloader.download(href)
        
-        if page.nil?
-            return
-        else
-            #
-            # ЗДЕСЬ БУДЕМ ПАРСИТЬ СТРАНИЦУ
-            #
-            #number_page = number_page + 1
-            #searchPages(href, number_page)
-        end  
+            if page.nil?
+                return 0
+            else                
+                el_count_pages = page.xpath("//div[@class='pagination aligncenter']//li[last() - 1]/a").first
+                count_pages = el_count_pages.content.to_i
+                return count_pages
+            end
+        rescue
+            puts 'Ошибка в нахождении количества страниц'
+        end
     end
 
     def searchAnimes(page, process, num_page)
+        Thread.current.exit if num_page > @count_pages 
+        
         begin
-            animes = Nokogiri::HTML(page).xpath("//div[@class='crop']//img")
+            anime_links = Nokogiri::HTML(page).xpath("//ul[@class='cardDeck cardGrid']//li//a")
         rescue
             puts 'Ошибка в получении аниме'
         end
 
-        animes.each do |anime|
+        anime_links.each do |anime_link|
             begin 
-                anime_name = anime.attr('alt')
-                puts "#{anime_name}, process #{process}, page #{num_page}"
+                href = "https://www.anime-planet.com#{anime_link.attr('href')}"
+                parseAnime(href)
             rescue
-                puts 'Ошибка в аниме'
+                puts 'Ошибка в ссылке на аниме'
             end
         end
+    end
+
+    def parseAnime(href)
+        anime_page = @page_downloader.download(href)
+
+        # жанры
+        basic_genres = Array.new
+        genres = anime_page.xpath("//li[@itemprop='genre']/a")
+
+        genres.each do |genre_el|
+            genre = genre_el.content.strip
+
+            basic_genres.push(genre) if GENRES.include?(genre)
+        end
+
+        
     end
 end
