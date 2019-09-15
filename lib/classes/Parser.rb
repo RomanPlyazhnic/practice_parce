@@ -3,6 +3,8 @@ require 'em-http-request'
 require 'eventmachine'
 
 class Parser
+    MAIN_HREF = 'https://www.anime-planet.com'
+    PAGE_DOWNLOADER = PageDownloader.new
     COUNT_PROCESS = 4
     GENRES = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
         'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
@@ -11,12 +13,15 @@ class Parser
         'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
         'Yuri']
 
-    def parse(page_downloader, href)        
-        @page_downloader = page_downloader
-        @count_pages = searchCountPages(href + 1.to_s)          
+    def self.parse()        
+        # очистка таблиц
+        Genre.delete_all
+        Anime.delete_all
+        # -----
+        @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
         @count_pages = 1        
         count_pages_for_process = @count_pages / 4
-
+        
         for num_proc in (1..COUNT_PROCESS) do 
             fork do            
                 threads = []  
@@ -27,11 +32,11 @@ class Parser
                     for i in (0..count_pages_for_process)
                         num_page = (4 * i) + num_proc
                         puts "Process №#{num_proc}, page №#{num_page}"
-                        http = EM::HttpRequest.new(href + num_page.to_s).get
+                        http = EM::HttpRequest.new("#{MAIN_HREF}/anime/all?page=#{num_page}").get
 
                         http.callback {
                             threads << Thread.new do
-                                searchAnimes(http.response, num_proc, num_page)
+                                searchAnimes(http.response, num_page)
                             end
                         }
 
@@ -56,9 +61,11 @@ class Parser
         puts "КОНЕЦ!!!!!"
     end
 
-    def searchCountPages(href)
+    private
+
+    def self.searchCountPages(href)
         begin
-            page = @page_downloader.download(href)
+            page = PAGE_DOWNLOADER.download(href)
        
             if page.nil?
                 return 0
@@ -72,7 +79,7 @@ class Parser
         end
     end
 
-    def searchAnimes(page, process, num_page)
+    def self.searchAnimes(page, num_page)
         Thread.current.exit if num_page > @count_pages 
         
         begin
@@ -83,7 +90,7 @@ class Parser
 
         anime_links.each do |anime_link|
             begin 
-                href = "https://www.anime-planet.com#{anime_link.attr('href')}"
+                href = "#{MAIN_HREF}#{anime_link.attr('href')}"
                 parseAnime(href)
             rescue
                 puts 'Ошибка в аниме'
@@ -91,8 +98,8 @@ class Parser
         end
     end
 
-    def parseAnime(href)
-        anime_page = @page_downloader.download(href)
+    def self.parseAnime(href)
+        anime_page = PAGE_DOWNLOADER.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
         main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
 
@@ -125,7 +132,7 @@ class Parser
 
         # изображение
         src = main_section.xpath("//img[@class='screenshots']").first.attr('src')
-        image_href = "https://www.anime-planet.com#{src}"
+        image_href = "#{MAIN_HREF}#{src}"
 
         # описание
         description = main_section.xpath("//div[@itemprop='description']/p").first.content
