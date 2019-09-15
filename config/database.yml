@@ -29,7 +29,7 @@ default: &default
 development:
   adapter: postgresql
   database: my_database_development
-  pool: 5
+  pool: 500
   timeout: 5000
   username: plyazhnic
   password: 3123

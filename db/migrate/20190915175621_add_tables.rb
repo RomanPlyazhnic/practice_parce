@@ -1,4 +1,4 @@
-class CreateTables < ActiveRecord::Migration[6.0]
+class AddTables < ActiveRecord::Migration[6.0]
   def change
     create_table :animes do |t|
       t.string :name

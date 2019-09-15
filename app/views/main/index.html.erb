@@ -1,6 +1,43 @@
-<h1>Main#index</h1>
-<% @tests.each do |test| %>
-    <tr>
-      <td><%= test.name %></td>
-    </tr>
+<h1>ANIME CATALOG</h1>
+
+<ul>
+  <li>
+    <a href="/main/index?order=name"> By name </a>
+  </li>
+  <li>
+    <a href="/main/index?order=studio"> By studio </a>
+  </li>
+  <li>
+    <a href="/main/index?order=year"> By year </a>
+  </li>
+  <li>
+    <a href="/main/index?order=rank"> By rank </a>
+  </li>
+  <li>
+    <a href="/main/index?order=kind"> By kind </a>
+  </li>
+</ul>
+
+<%= form_with(url: "/main/index", method: "get") do %>
+  <% @genres.each do |genre| %>
+    <%= check_box_tag(genre, true, @selected_genres[genre]) %>
+    <%= label_tag(genre.to_sym, genre) %>
+  <% end %>
+  <%= submit_tag("Поиск") %>
+
+  <% @animes.each do |anime| %>
+    <ul>    
+      <li><%= anime.name %></li>
+    </ul>
+  <% end %>
+
+  <%= paginate @animes %>
 <% end %>
+
+
+
+
+
+
+
+

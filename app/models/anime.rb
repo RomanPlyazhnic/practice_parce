@@ -1,3 +1,3 @@
 class Anime < ApplicationRecord
-    has_one :genre
+    has_many :genre
 end

@@ -13,43 +13,28 @@ class Parser
         'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
         'Yuri']
 
-    def self.parse()        
+    def parse()        
         # очистка таблиц
         Genre.delete_all
         Anime.delete_all
         # -----
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        @count_pages = 1        
+        @count_pages = 5
         count_pages_for_process = @count_pages / 4
         
+        # поиск страниц
         for num_proc in (1..COUNT_PROCESS) do 
             fork do            
                 threads = []  
 
-                EM.run {
-                    multi = EM::MultiRequest.new
+                for i in (0..count_pages_for_process)
+                    num_page = (4 * i) + num_proc
+                    href = "#{MAIN_HREF}/anime/all?page=#{num_page}"
 
-                    for i in (0..count_pages_for_process)
-                        num_page = (4 * i) + num_proc
-                        puts "Process №#{num_proc}, page №#{num_page}"
-                        http = EM::HttpRequest.new("#{MAIN_HREF}/anime/all?page=#{num_page}").get
-
-                        http.callback {
-                            threads << Thread.new do
-                                searchAnimes(http.response, num_page)
-                            end
-                        }
-
-                        http.errback {p 'Error loading page'; EM.stop}
-                        multi.add i, http
+                    threads << Thread.new(href, num_page) do |h, n|
+                        searchAnimes(h, n)
                     end
-
-                    multi.callback {
-                        p multi.responses[:callback].size
-                        p multi.responses[:errback].size
-                        EM.stop
-                    }
-                }   
+                end
 
                 threads.each do |t|
                     t.join
@@ -63,7 +48,7 @@ class Parser
 
     private
 
-    def self.searchCountPages(href)
+    def searchCountPages(href)
         begin
             page = PAGE_DOWNLOADER.download(href)
        
@@ -79,11 +64,13 @@ class Parser
         end
     end
 
-    def self.searchAnimes(page, num_page)
-        Thread.current.exit if num_page > @count_pages 
-        
+    def searchAnimes(href, num_page)
+        Thread.current.exit if num_page > @count_pages
+
+        page = PAGE_DOWNLOADER.download(href)
+
         begin
-            anime_links = Nokogiri::HTML(page).xpath("//ul[@class='cardDeck cardGrid']//li//a")[0..2]
+            anime_links = page.xpath("//ul[@class='cardDeck cardGrid']//li//a")
         rescue
             puts 'Ошибка в получении аниме'
         end
@@ -98,14 +85,13 @@ class Parser
         end
     end
 
-    def self.parseAnime(href)
+    def parseAnime(href)
         anime_page = PAGE_DOWNLOADER.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
         main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
 
         # название
         name = anime_page.xpath("//h1[@itemprop='name']").first.content
-        puts name
 
         # тип
         kind = top_section.xpath("//span[@class='type']").first.content
@@ -138,13 +124,6 @@ class Parser
         description = main_section.xpath("//div[@itemprop='description']/p").first.content
 
         # запись в базу данных
-        genres_hash = Hash.new
-
-        basic_genres.each do |genre|
-            genres_hash[genre.gsub(/ /, '_').to_sym] = true
-        end
-
-        db_genres = Genre.create(genres_hash)
         anime = Anime.create(
             name: name,
             kind: kind,
@@ -152,8 +131,12 @@ class Parser
             year: year,
             rank: rank,
             image_href: image_href,
-            description: description,
-            genre: db_genres
+            description: description
         )
+
+        basic_genres.each do |genre|
+            a = Genre.create(genre: genre)
+            anime.genre << a
+        end
     end
 end
