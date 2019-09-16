@@ -19,7 +19,7 @@ class MainController < ApplicationController
 
     #byebug
     parser = Parser.new
-    parser.parse
+    #parser.parse
     puts params[:Harem]
     order = params[:order] == nil ? :rank : params[:order].to_sym
     @animes = Anime.order(order).page params[:page]
