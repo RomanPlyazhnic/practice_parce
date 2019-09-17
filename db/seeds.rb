@@ -6,4 +6,13 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-Test.create(name: 'plyazhnic', created_at: Date.current, updated_at: Date.current)
+GENRES = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
+        'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
+        'Josei', 'Magical girl', 'Mecha', 'Mystery', 'Reverse Harem',
+        'Romance', 'Sci Fi', 'Seinen', 'Shoujo', 'Shoujo-ai',
+        'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
+        'Yuri']
+
+GENRES.each do |genre|
+    Genre.create(genre: genre).save
+end

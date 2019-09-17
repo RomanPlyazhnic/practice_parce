@@ -1,5 +1,6 @@
 class Anime < ApplicationRecord
-    has_many :genre
-    #include ActiveModel::Model
-    #attr_accessor :name, :kind, :studio, :year, :rank, :description, :genre, :image_href
+    #has_many :genre
+
+    has_many :animegenre
+    has_many :genre, through: :animegenre
 end

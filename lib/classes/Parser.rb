@@ -14,11 +14,11 @@ class Parser
 
     def parse()        
         # очистка таблиц
-        Genre.delete_all
         Anime.delete_all
+        Animegenre.delete_all
         # -----
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        @count_pages = 2
+        @count_pages = 3
         count_pages_for_process = @count_pages / 4
         
         searchPages(count_pages_for_process)
@@ -78,12 +78,12 @@ class Parser
         end
 
         anime_links.each do |anime_link|
-            begin 
+            #begin 
                 href = "#{MAIN_HREF}#{anime_link.attr('href')}"
                 writeAnime(href, page_downloader)
-            rescue StandardError => err
-                Rails.logger.error(err)
-            end
+            #rescue StandardError => err
+            #    Rails.logger.error(err)
+            #end
         end
     end
 
@@ -143,7 +143,7 @@ class Parser
             end
 
             found_genres.each do |genre|
-                anime.genre << Genre.create(genre: genre)
+                anime.genre << Genre.where(genre: genre)
             end
         end
 

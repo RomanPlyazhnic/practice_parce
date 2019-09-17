@@ -29,7 +29,7 @@
   </ul>
 
   <div>
-    <%= form_with(url: "/main/index", method: "get") do %>
+    <%= form_with(url: "/main/search", method: "get") do %>
       <% @genres.each do |genre| %>
         <%= check_box_tag(genre, true, @selected_genres[genre]) %>
         <%= label_tag(genre.to_sym, genre) %>

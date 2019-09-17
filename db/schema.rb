@@ -10,10 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_15_175630) do
+ActiveRecord::Schema.define(version: 2019_09_17_132550) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "animegenres", force: :cascade do |t|
+    t.bigint "anime_id"
+    t.bigint "genre_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["anime_id"], name: "index_animegenres_on_anime_id"
+    t.index ["genre_id"], name: "index_animegenres_on_genre_id"
+  end
 
   create_table "animes", force: :cascade do |t|
     t.string "name"
@@ -32,12 +41,9 @@ ActiveRecord::Schema.define(version: 2019_09_15_175630) do
   end
 
   create_table "genres", force: :cascade do |t|
-    t.bigint "anime_id"
     t.string "genre"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["anime_id"], name: "index_genres_on_anime_id"
-    t.index ["genre"], name: "index_genres_on_genre"
   end
 
   create_table "testdb", id: false, force: :cascade do |t|
@@ -50,5 +56,4 @@ ActiveRecord::Schema.define(version: 2019_09_15_175630) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  add_foreign_key "genres", "animes"
 end
