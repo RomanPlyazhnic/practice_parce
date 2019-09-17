@@ -1,5 +1,6 @@
 require './lib/classes/PageDownloader'
 require './lib/classes/Parser'
+require './lib/classes/SelectedGenresStorage'
 require 'byebug'
 require 'kaminari'
 
@@ -12,17 +13,32 @@ class MainController < ApplicationController
     'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
     'Yuri']
 
-    @selected_genres = Hash.new
-    @genres.each do |genre|
-      @selected_genres[genre] = params[genre]
+    if SelectedGenresStorage.hash_genres == nil
+      SelectedGenresStorage.hash_genres = Hash.new
+    end
+    
+    if params[:commit] == "Поиск"
+      SelectedGenresStorage.hash_genres = Hash.new
+
+      @genres.each do |genre|
+        SelectedGenresStorage.hash_genres[genre] = params[genre]
+      end
     end
 
-    #byebug
-    parser = Parser.new
-    #parser.parse
-    puts params[:Harem]
+    @selected_genres = SelectedGenresStorage.hash_genres
     order = params[:order] == nil ? :rank : params[:order].to_sym
-    @animes = Anime.order(order).page params[:page]
-    #@tests = Test.all    
+    @animes = Anime.order(order)
+
+    if !SelectedGenresStorage.ArraySelectedGenres.empty?
+      search_query = "name in (
+        select animes.name from animes
+        join genres on animes.id = genres.anime_id
+        where genre in #{SelectedGenresStorage.ArraySelectedGenres}
+        group by name having count(*) = #{SelectedGenresStorage.ArraySelectedGenres.length}
+        order by animes.name)".gsub(/\[/, '(').gsub(/]/, ')').gsub(/"/, '\'')
+      @animes = @animes.where(search_query)      
+    end
+
+    @animes = @animes.page params[:page]
   end
 end

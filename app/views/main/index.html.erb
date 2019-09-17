@@ -1,38 +1,54 @@
-<h1>ANIME CATALOG</h1>
+<head>
+  <script type="text/javascript">
+      reload_page = function() {
+        document.location.reload(true);
+      };
 
-<ul>
-  <li>
-    <a href="/main/index?order=name"> By name </a>
-  </li>
-  <li>
-    <a href="/main/index?order=studio"> By studio </a>
-  </li>
-  <li>
-    <a href="/main/index?order=year"> By year </a>
-  </li>
-  <li>
-    <a href="/main/index?order=rank"> By rank </a>
-  </li>
-  <li>
-    <a href="/main/index?order=kind"> By kind </a>
-  </li>
-</ul>
+    
+  </script>
+</head>
+<body data-no-turbolink="true">
+  <h1>ANIME CATALOG</h1>
 
-<%= form_with(url: "/main/index", method: "get") do %>
-  <% @genres.each do |genre| %>
-    <%= check_box_tag(genre, true, @selected_genres[genre]) %>
-    <%= label_tag(genre.to_sym, genre) %>
-  <% end %>
-  <%= submit_tag("Поиск") %>
+  <ul>
+    <li>
+      <a href="/main/index?order=name"> By name </a>
+    </li>
+    <li>
+      <a href="/main/index?order=studio"> By studio </a>
+    </li>
+    <li>
+      <a href="/main/index?order=year"> By year </a>
+    </li>
+    <li>
+      <a href="/main/index?order=rank"> By rank </a>
+    </li>
+    <li>
+      <a href="/main/index?order=kind"> By kind </a>
+    </li>
+  </ul>
 
-  <% @animes.each do |anime| %>
-    <ul>    
-      <li><%= anime.name %></li>
-    </ul>
-  <% end %>
+  <div>
+    <%= form_with(url: "/main/index", method: "get") do %>
+      <% @genres.each do |genre| %>
+        <%= check_box_tag(genre, true, @selected_genres[genre]) %>
+        <%= label_tag(genre.to_sym, genre) %>
+      <% end %>
+      <%= submit_tag("Поиск") %>
 
-  <%= paginate @animes %>
-<% end %>
+      <% @animes.each do |anime| %>
+        <ul>    
+          <li><%= anime.name %></li>
+        </ul>
+      <% end %>
+
+      <%= paginate @animes %>
+    <% end %>
+  </div>
+</body>
+
+
+
 
 
 
