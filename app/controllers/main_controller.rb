@@ -6,7 +6,6 @@ require 'kaminari'
 
 class MainController < ApplicationController
   def index
-    parse if params[:parse]
     @genres = GenresStorage.genres
     @animes = AnimeSelector(@animes, params)
   end
@@ -31,6 +30,10 @@ class MainController < ApplicationController
     @selected_genres = GenresStorage.HashSelectedGenres
     order = params[:order] == nil ? :rank : params[:order].to_sym
     animes = Anime.order(order)
+
+    if params[:search_field] != nil
+      animes = animes.where("lower(name) LIKE  lower('%#{params[:search_field]}%')")
+    end
 
     if !GenresStorage.ArraySelectedGenres.empty?
       search_query = "name in (

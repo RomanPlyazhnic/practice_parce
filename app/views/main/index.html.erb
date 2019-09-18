@@ -32,6 +32,7 @@
         <%= check_box_tag(genre, true, @selected_genres[genre]) %>
         <%= label_tag(genre.to_sym, genre) %>
       <% end %>
+      <input id="search_field" name="search_field" placeholder="Search anime by name" type="text">
       <%= submit_tag("Поиск") %>
 
       <% @animes.each do |anime| %>
