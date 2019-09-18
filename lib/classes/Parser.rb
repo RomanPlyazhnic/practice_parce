@@ -5,12 +5,6 @@ require 'eventmachine'
 class Parser
     MAIN_HREF = 'https://www.anime-planet.com'
     COUNT_PROCESS = 4
-    GENRES = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
-        'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
-        'Josei', 'Magical girl', 'Mecha', 'Mystery', 'Reverse Harem',
-        'Romance', 'Sci Fi', 'Seinen', 'Shoujo', 'Shoujo-ai',
-        'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
-        'Yuri']
 
     def parse()        
         # очистка таблиц
@@ -18,7 +12,7 @@ class Parser
         Animegenre.delete_all
         # -----
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        @count_pages = 3
+        @count_pages = 2
         count_pages_for_process = @count_pages / 4
         
         searchPages(count_pages_for_process)
@@ -78,12 +72,12 @@ class Parser
         end
 
         anime_links.each do |anime_link|
-            #begin 
+            begin 
                 href = "#{MAIN_HREF}#{anime_link.attr('href')}"
                 writeAnime(href, page_downloader)
-            #rescue StandardError => err
-            #    Rails.logger.error(err)
-            #end
+            rescue StandardError => err
+                Rails.logger.error(err)
+            end
         end
     end
 
@@ -139,7 +133,7 @@ class Parser
             genres_dom.each do |genre_dom|
                 genre = genre_dom.content.strip
 
-                found_genres.push(genre) if GENRES.include?(genre)
+                found_genres.push(genre) if GenresStorage.genres.include?(genre)
             end
 
             found_genres.each do |genre|

@@ -1,85 +1,56 @@
 require './lib/classes/PageDownloader'
 require './lib/classes/Parser'
-require './lib/classes/SelectedGenresStorage'
+require './lib/classes/GenresStorage'
 require 'byebug'
 require 'kaminari'
 
 class MainController < ApplicationController
   def index
-    #Parser.new.parse
-
-    @genres = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
-    'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
-    'Josei', 'Magical girl', 'Mecha', 'Mystery', 'Reverse Harem',
-    'Romance', 'Sci Fi', 'Seinen', 'Shoujo', 'Shoujo-ai',
-    'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
-    'Yuri']
-
-    if SelectedGenresStorage.hash_genres == nil
-      SelectedGenresStorage.hash_genres = Hash.new
-    end
-    
-    #if params[:commit] == "Поиск"
-    #  SelectedGenresStorage.hash_genres = Hash.new
-
-    #  @genres.each do |genre|
-    #    SelectedGenresStorage.hash_genres[genre] = params[genre]
-    #  end
-    #end
-
-    @selected_genres = SelectedGenresStorage.hash_genres
-    order = params[:order] == nil ? :rank : params[:order].to_sym
-    @animes = Anime.order(order)
-
-    if !SelectedGenresStorage.ArraySelectedGenres.empty?
-      search_query = "name in (
-        select animes.name from animes
-        join animegenres on animes.id = animegenres.anime_id
-        join genres on animegenres.genre_id = genres.id
-        where genres.genre in #{SelectedGenresStorage.ArraySelectedGenres}
-        group by name having count(*) = #{SelectedGenresStorage.ArraySelectedGenres.length}
-        order by animes.name)".gsub(/\[/, '(').gsub(/]/, ')').gsub(/"/, '\'')
-      @animes = @animes.where(search_query)      
-    end
-
-    @animes = @animes.page params[:page]
+    parse if params[:parse]
+    @genres = GenresStorage.genres
+    @animes = AnimeSelector(@animes, params)
   end
 
   def search
     #Parser.new.parse
+    @genres = GenresStorage.genres
+    @animes = AnimeSelector(@animes, params, true)
+    render :index
+  end
 
-    @genres = ['Action', 'Adventure', 'BL', 'Comedy', 'Drama',
-    'Ecchi', 'Fantasy', 'GL', 'Harem', 'Horror',
-    'Josei', 'Magical girl', 'Mecha', 'Mystery', 'Reverse Harem',
-    'Romance', 'Sci Fi', 'Seinen', 'Shoujo', 'Shoujo-ai',
-    'Shounen', 'Shounen-ai', 'Slice of Life', 'Sports', 'Yaoi',
-    'Yuri']
+  def parse
+    Parser.new.parse
+    redirect_to :action => "index"
+  end
+  
+  private 
 
-    if SelectedGenresStorage.hash_genres == nil
-      SelectedGenresStorage.hash_genres = Hash.new
-    end
+  def AnimeSelector(animes, params, search = false)
+    ReselectGenres(params) if search
 
-    SelectedGenresStorage.hash_genres = Hash.new
-
-    @genres.each do |genre|
-      SelectedGenresStorage.hash_genres[genre] = params[genre]
-    end    
-
-    @selected_genres = SelectedGenresStorage.hash_genres
+    @selected_genres = GenresStorage.HashSelectedGenres
     order = params[:order] == nil ? :rank : params[:order].to_sym
-    @animes = Anime.order(order)
+    animes = Anime.order(order)
 
-    if !SelectedGenresStorage.ArraySelectedGenres.empty?
+    if !GenresStorage.ArraySelectedGenres.empty?
       search_query = "name in (
         select animes.name from animes
         join animegenres on animes.id = animegenres.anime_id
         join genres on animegenres.genre_id = genres.id
-        where genres.genre in #{SelectedGenresStorage.ArraySelectedGenres}
-        group by name having count(*) = #{SelectedGenresStorage.ArraySelectedGenres.length}
+        where genres.genre in #{GenresStorage.ArraySelectedGenres}
+        group by name having count(*) = #{GenresStorage.ArraySelectedGenres.length}
         order by animes.name)".gsub(/\[/, '(').gsub(/]/, ')').gsub(/"/, '\'')
-      @animes = @animes.where(search_query)      
+      animes = animes.where(search_query)      
     end
 
-    @animes = @animes.page params[:page]
+    animes = animes.page(params[:page])
+  end
+
+  def ReselectGenres(params)
+    GenresStorage.ResetHashSelectedGenres
+
+    @genres.each do |genre|
+      GenresStorage.HashSelectedGenres[genre] = params[genre]
+    end   
   end
 end

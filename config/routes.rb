@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   get 'main/index'
   get 'main/search'
+  get 'main/parse'
   root 'main#index'
-  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end

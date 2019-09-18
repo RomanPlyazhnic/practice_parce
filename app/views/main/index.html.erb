@@ -1,10 +1,6 @@
 <head>
   <script type="text/javascript">
-      reload_page = function() {
-        document.location.reload(true);
-      };
 
-    
   </script>
 </head>
 <body data-no-turbolink="true">
@@ -28,8 +24,10 @@
     </li>
   </ul>
 
+  <a href="/main/parse" class="btn btn-default">Parse</a>
+
   <div>
-    <%= form_with(url: "/main/search", method: "get") do %>
+    <%= form_with(url: "/main/search", method: "get", local: true) do %>
       <% @genres.each do |genre| %>
         <%= check_box_tag(genre, true, @selected_genres[genre]) %>
         <%= label_tag(genre.to_sym, genre) %>
