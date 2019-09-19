@@ -16,6 +16,7 @@
       <button class="btn btn-default" type="submit">Поиск</button>
     <% end %>
   </div>
+
   <div class="main-block">
     <div class="sort-block">
       <ul>
@@ -40,12 +41,44 @@
       </ul>
     </div>
 
-    <div>    
-      <% @animes.each do |anime| %>
-        <ul>    
-          <li><%= anime.name %></li>
-        </ul>
-      <% end %>
+    <% @animes.each do |anime| %> 
+      <div class="anime">
+        <div style="font-size: 30px;" class="anime-name">
+          <%= anime.name %>
+        </div>
+
+        <div style="font-size: 18px;" class="anime-info">
+          <div class="anime-kind-block" style="margin-left: 60px; border-right: 1px solid rgb(120, 120, 120);">
+            <%= anime.kind.to_s.strip.length == 0 ? '...' : anime.kind %> 
+          </div>
+          <div class="anime-kind-block" style="border-right: 1px solid rgb(120, 120, 120);">
+            <%= anime.studio.to_s.strip.length == 0 ? '...' : anime.studio %> 
+          </div>
+          <div class="anime-kind-block" style="border-right: 1px solid rgb(120, 120, 120);">
+            <%= anime.year.to_s.strip.length == 0 ? '...' : anime.year %> 
+          </div>
+          <div class="anime-kind-block">
+            rank <%= anime.rank.to_s.strip.length == 0 ? '...' : anime.rank %>
+          </div>
+        </div>
+
+        <div>
+          <div style="" class="anime-image">
+            <img src="<%= anime.image_href %>">
+          </div>
+
+          <div style="" class="anime-description">
+            <%= anime.description %>
+          </div>
+        </div> 
+        
+        <div class="anime-genres">
+          <%= anime.genre.map { |genre| genre.genre }.join(', ') %>
+        </div>
+      </div> 
+    <% end %>
+
+    <div class="page-block">  
       <%= paginate @animes %>
     </div>
   </div>

@@ -12,7 +12,7 @@ class Parser
         Animegenre.delete_all
         # -----
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        @count_pages = 2
+        @count_pages = 10
         count_pages_for_process = @count_pages / 4
         
         searchPages(count_pages_for_process)
@@ -70,38 +70,19 @@ class Parser
             Rails.logger.error(err)
         end
 
-        EM.run {
-            multi = EM::MultiRequest.new
-
-            j = 0
-            anime_links.each do |anime_link|
-                begin 
-                    j = j + 1
-                    href = "#{MAIN_HREF}#{anime_link.attr('href')}"
-                    http = EM::HttpRequest.new(href).get
-
-                    http.callback {
-                        writeAnime(Nokogiri::HTML(http.response))
-                    }
-
-                    http.errback {p 'Error loading page'; EM.stop}
-
-                    multi.add j, http
-                rescue StandardError => err
-                    Rails.logger.error(err)
-                end
+        anime_links.each do |anime_link|
+            begin 
+                href = "#{MAIN_HREF}#{anime_link.attr('href')}"
+                writeAnime(href, page_downloader)
+            rescue StandardError => err
+                Rails.logger.error(err)
             end
-
-            multi.callback {
-                p multi.responses[:callback].size
-                p multi.responses[:errback].size
-                EM.stop
-            }
-        } 
+        end
     end
 
-    def writeAnime(anime_page)
+    def writeAnime(href, page_downloader)
         reg_rank = /\d+/m
+        anime_page = page_downloader.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
         main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
         anime = Anime.create
@@ -123,7 +104,7 @@ class Parser
         end
         
         # студия
-        studio_dom = top_section.xpath("//div[@class='pure-1 md-1-5'][position()=1]")
+        studio_dom = top_section.xpath("//div[@class='pure-1 md-1-5'][position()=2]")
 
         if studio_dom != nil
             anime.studio = studio_dom.first.content.strip
