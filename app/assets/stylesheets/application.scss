@@ -1,0 +1,89 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+*/
+
+ @import "bootstrap";
+
+body {
+    background-color: rgb(100, 100, 100);
+}
+
+ .top-block {
+    height: 50px;
+    padding-left: 30px;
+    background-color: rgb(50, 50, 50);
+    font-size: 30px;
+    color: antiquewhite;
+ };
+
+ .main-block {
+    width: 1000px;
+    margin: auto;
+ };
+
+ .main-block ul {
+    margin: 0;
+    font-size: 20px;
+    color: antiquewhite;
+ };
+
+ .main-block li {
+    display: inline;
+};
+
+.main-block a {
+    color: black;
+};
+
+ .search-block {
+    background-color: rgb(50, 50, 50);
+    margin-top: 20px;
+    padding: 15px;
+    width: 200px;
+    position: fixed;
+    right: 0px;
+    font-size: 15px;
+    color: antiquewhite;
+ };
+
+ .search-block div {
+    display: block;
+ }
+
+ .search-block label {
+    margin-bottom: 0.2rem;
+ };
+
+ .search-block button {
+    width: 150px;
+    margin-left: 10px;
+    margin-top: 10px;
+    background-color: rgba(60,206,123,.8);
+ };
+
+ .sort-block {
+    margin-top: 10px;
+    background-color: rgb(50, 50, 50);
+    height: 50px;
+    padding: 3px;
+ };
+
+ .sort-block a {
+    background-color: rgba(60,206,123,.8);
+    height: 30px;
+    width: 100px;
+    line-height: 15px;
+ };
+
+ .sort-block li {
+    margin-left: 40px;
+ };

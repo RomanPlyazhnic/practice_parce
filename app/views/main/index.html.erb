@@ -3,46 +3,51 @@
 
   </script>
 </head>
-<body data-no-turbolink="true">
-  <h1>ANIME CATALOG</h1>
-
-  <ul>
-    <li>
-      <a href="/main/index?order=name"> By name </a>
-    </li>
-    <li>
-      <a href="/main/index?order=studio"> By studio </a>
-    </li>
-    <li>
-      <a href="/main/index?order=year"> By year </a>
-    </li>
-    <li>
-      <a href="/main/index?order=rank"> By rank </a>
-    </li>
-    <li>
-      <a href="/main/index?order=kind"> By kind </a>
-    </li>
-  </ul>
-
-  <a href="/main/parse" class="btn btn-default">Parse</a>
-
-  <div>
+<body>
+  <div class="search-block">
     <%= form_with(url: "/main/search", method: "get", local: true) do %>
       <% @genres.each do |genre| %>
-        <%= check_box_tag(genre, true, @selected_genres[genre]) %>
-        <%= label_tag(genre.to_sym, genre) %>
+        <div>
+          <%= check_box_tag(genre, true, @selected_genres[genre]) %>
+          <%= label_tag(genre.to_sym, genre) %>
+        </div>
       <% end %>
-      <input id="search_field" name="search_field" placeholder="Search anime by name" type="text">
-      <%= submit_tag("Поиск") %>
+      <input style="width: 170px;" id="search_field" name="search_field" placeholder="Search anime by name" type="text">
+      <button class="btn btn-default" type="submit">Поиск</button>
+    <% end %>
+  </div>
+  <div class="main-block">
+    <div class="sort-block">
+      <ul>
+        <li style="font-size: 25px;">
+          Sort by:
+        </li>
+        <li>
+          <a class="btn btn-default" href="/main/index?order=name"> name </a>
+        </li>
+        <li>
+          <a class="btn btn-default" href="/main/index?order=studio"> studio </a>
+        </li>
+        <li>
+          <a class="btn btn-default" href="/main/index?order=year"> year </a>
+        </li>
+        <li>
+          <a class="btn btn-default" href="/main/index?order=rank"> rank </a>
+        </li>
+        <li>
+          <a class="btn btn-default" href="/main/index?order=kind"> kind </a>
+        </li>
+      </ul>
+    </div>
 
+    <div>    
       <% @animes.each do |anime| %>
         <ul>    
           <li><%= anime.name %></li>
         </ul>
       <% end %>
-
       <%= paginate @animes %>
-    <% end %>
+    </div>
   </div>
 </body>
 
