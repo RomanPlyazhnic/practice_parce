@@ -12,7 +12,7 @@ class Parser
         Animegenre.delete_all
         # -----
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        #@count_pages = 10
+        @count_pages = 20
         count_pages_for_process = @count_pages / 4
         
         searchPages(count_pages_for_process)
