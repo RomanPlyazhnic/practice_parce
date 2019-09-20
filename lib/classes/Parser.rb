@@ -1,7 +1,6 @@
 require 'nokogiri'
-require 'em-http-request'
-require 'eventmachine'
-require 'concurrent-ruby'
+#require 'em-http-request'
+#require 'eventmachine'
 
 class Parser
     MAIN_HREF = 'https://www.anime-planet.com'
@@ -51,12 +50,17 @@ class Parser
                     jobs.push(num_page: num_page, href: href)
                 end
 
-                threads = (THREAD_COUNT).times.map do
-                    Thread.new do     
-                        while job = jobs.pop(true)
-                            searchAnimesInPage(job[:href], job[:num_page])       
+                begin
+                    threads = (THREAD_COUNT).times.map do
+                        Thread.new do     
+                            while jobs.length != 0
+                                job = jobs.pop
+                                searchAnimesInPage(job[:href], job[:num_page])       
+                            end
                         end
-                    end
+                end
+                rescue StandardError => err
+                    Rails.logger.error(err)
                 end
 
                 threads.map(&:join)
