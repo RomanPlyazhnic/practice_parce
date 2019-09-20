@@ -1,2 +1,2 @@
-web:    bin/start-pgbouncer bundle exec unicorn -p $PORT -c ./config/unicorn.rb -E $RACK_ENV
+web:    bin/start-pgbouncer-stunnel bundle exec puma -C config/puma.
 worker: bundle exec rake worker
