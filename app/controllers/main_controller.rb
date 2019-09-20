@@ -1,7 +1,6 @@
 require './lib/classes/PageDownloader'
 require './lib/classes/Parser'
 require './lib/classes/GenresStorage'
-require 'byebug'
 require 'kaminari'
 
 class MainController < ApplicationController
