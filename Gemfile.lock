@@ -250,6 +250,7 @@ DEPENDENCIES
   bootstrap
   byebug
   capybara (>= 2.15)
+  concurrent-ruby
   curb
   em-http-request
   eventmachine
@@ -273,7 +274,7 @@ DEPENDENCIES
   webpacker (~> 4.0)
 
 RUBY VERSION
-   ruby 2.6.3p62
+   ruby 2.6.4p104
 
 BUNDLED WITH
    2.0.2

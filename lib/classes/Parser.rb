@@ -1,18 +1,19 @@
 require 'nokogiri'
 require 'em-http-request'
 require 'eventmachine'
+require 'concurrent-ruby'
 
 class Parser
     MAIN_HREF = 'https://www.anime-planet.com'
     COUNT_PROCESS = 4
+    THREAD_COUNT = 10
 
     def parse()        
         # очистка таблиц
         Anime.delete_all
         Animegenre.delete_all
         # -----
-        @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")          
-        @count_pages = 20
+        @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")
         count_pages_for_process = @count_pages / 4
         
         searchPages(count_pages_for_process)
@@ -40,21 +41,25 @@ class Parser
 
     def searchPages(count_pages_for_process)
         for num_proc in (1..COUNT_PROCESS) do 
-            fork do            
-                threads = []  
+            fork do
+                jobs = Queue.new
 
-                for i in (0..count_pages_for_process)
-                    num_page = (4 * i) + num_proc
+                (0..count_pages_for_process).each do |i|
+                    num_page = (COUNT_PROCESS * i) + num_proc
                     href = "#{MAIN_HREF}/anime/all?page=#{num_page}"
 
-                    threads << Thread.new(href, num_page) do |h, n|
-                        searchAnimesInPage(h, n)
+                    jobs.push(num_page: num_page, href: href)
+                end
+
+                threads = (THREAD_COUNT).times.map do
+                    Thread.new do     
+                        while job = jobs.pop(true)
+                            searchAnimesInPage(job[:href], job[:num_page])       
+                        end
                     end
                 end
 
-                threads.each do |t|
-                    t.join
-                end                            
+                threads.map(&:join)
             end
         end
     end
