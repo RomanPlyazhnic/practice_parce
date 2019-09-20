@@ -11,7 +11,7 @@ class Parser
         # очистка таблиц
         Anime.delete_all
         Animegenre.delete_all
-        # -----
+        # 
         @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")
         count_pages_for_process = @count_pages / 4
         
