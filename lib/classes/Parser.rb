@@ -12,17 +12,17 @@ class Parser
         Anime.delete_all
         Animegenre.delete_all
         # 
-        @count_pages = searchCountPages("#{MAIN_HREF}/anime/all?page=1")
+        @count_pages = search_count_pages("#{MAIN_HREF}/anime/all?page=1")
         count_pages_for_process = @count_pages / COUNT_PROCESS
         
-        searchPages(count_pages_for_process)
+        search_pages(count_pages_for_process)
 
         Process.waitall
     end
 
     private
 
-    def searchCountPages(href)
+    def search_count_pages(href)
         begin
             page = PageDownloader.new.download(href)
        
@@ -38,7 +38,7 @@ class Parser
         end
     end
 
-    def searchPages(count_pages_for_process)
+    def search_pages(count_pages_for_process)
         for num_proc in (1..COUNT_PROCESS) do 
             fork do
                 jobs = Queue.new
@@ -55,7 +55,7 @@ class Parser
                         Thread.new do     
                             while jobs.length != 0
                                 job = jobs.pop
-                                searchAnimesInPage(job[:href], job[:num_page])       
+                                search_animes_in_page(job[:href], job[:num_page])       
                             end
                         end
                 end
@@ -68,7 +68,7 @@ class Parser
         end
     end
     
-    def searchAnimesInPage(href, num_page)
+    def search_animes_in_page(href, num_page)
         Thread.current.exit if num_page > @count_pages
         page_downloader = PageDownloader.new
         page = page_downloader.download(href)
@@ -82,14 +82,14 @@ class Parser
         anime_links.each do |anime_link|
             begin 
                 href = "#{MAIN_HREF}#{anime_link.attr('href')}"
-                writeAnime(href, page_downloader)
+                write_anime(href, page_downloader)
             rescue StandardError => err
                 Rails.logger.error(err)
             end
         end
     end
 
-    def writeAnime(href, page_downloader)
+    def write_anime(href, page_downloader)
         reg_rank = /\d+/m
         anime_page = page_downloader.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")

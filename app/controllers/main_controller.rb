@@ -4,15 +4,16 @@ require './lib/classes/GenresStorage'
 require 'kaminari'
 
 class MainController < ApplicationController
+  helper QueryHelper
+
   def index
     @genres = GenresStorage.genres
-    @animes = AnimeSelector(@animes, params)
+    @animes = anime_selector(@animes, params)
   end
 
   def search
-    #Parser.new.parse
     @genres = GenresStorage.genres
-    @animes = AnimeSelector(@animes, params, true)
+    @animes = anime_selector(@animes, params, true)
     render :index
   end
 
@@ -20,13 +21,16 @@ class MainController < ApplicationController
     Parser.new.parse
     redirect_to :action => "index"
   end
-  
+
   private 
 
-  def AnimeSelector(animes, params, search = false)
-    ReselectGenres(params) if search
+  def anime_selector(animes, params, search = false)
+    @selected_genres = Hash.new
 
-    @selected_genres = GenresStorage.HashSelectedGenres
+    @genres.each do |genre|
+      @selected_genres[genre] = params[genre]
+    end
+    
     order = params[:order] == nil ? :rank : params[:order].to_sym
     animes = Anime.order(order)
 
@@ -34,25 +38,28 @@ class MainController < ApplicationController
       animes = animes.where("lower(name) LIKE  lower('%#{params[:search_field]}%')")
     end
 
-    if !GenresStorage.ArraySelectedGenres.empty?
-      search_query = "name in (
+    if !array_selected_genres(@selected_genres).empty?
+      
+      animes = animes.where("name in (
         select animes.name from animes
         join animegenres on animes.id = animegenres.anime_id
         join genres on animegenres.genre_id = genres.id
-        where genres.genre in #{GenresStorage.ArraySelectedGenres}
-        group by name having count(*) = #{GenresStorage.ArraySelectedGenres.length}
-        order by animes.name)".gsub(/\[/, '(').gsub(/]/, ')').gsub(/"/, '\'')
-      animes = animes.where(search_query)      
+        where genres.genre in (?)
+        group by name having count(*) = ?
+        order by animes.name)",
+        array_selected_genres(@selected_genres), array_selected_genres(@selected_genres).length)      
     end
 
     animes = animes.page(params[:page])
   end
 
-  def ReselectGenres(params)
-    GenresStorage.ResetHashSelectedGenres
+  def array_selected_genres(hash)
+    array_genres = Array.new
 
-    @genres.each do |genre|
-      GenresStorage.HashSelectedGenres[genre] = params[genre]
-    end   
+    hash.each do |key, value|
+        array_genres.push(key) if value == "true"
+    end
+    
+    return array_genres
   end
 end

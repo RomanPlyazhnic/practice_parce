@@ -9,22 +9,4 @@ class GenresStorage
     class << self
         attr_reader :genres
     end
-
-    def self.HashSelectedGenres
-        return @hash_selected_genres == nil ? Hash.new : @hash_selected_genres
-    end
-
-    def self.ResetHashSelectedGenres
-        @hash_selected_genres = Hash.new
-    end
-
-    def self.ArraySelectedGenres
-        array_genres = Array.new
-
-        self.HashSelectedGenres.each do |key, value|
-            array_genres.push(key) if value == "true"
-        end
-        
-        return array_genres
-    end
 end
