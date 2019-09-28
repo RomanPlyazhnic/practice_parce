@@ -7,6 +7,7 @@ module QueryHelper
         end
 
         url.gsub!(/&?order=\w+/, '')
+        url.gsub!('//', '/')
 
         url = url + "order=" + order
     end
