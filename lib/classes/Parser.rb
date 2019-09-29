@@ -1,11 +1,11 @@
 require 'nokogiri'
-#require 'em-http-request'
-#require 'eventmachine'
+require 'em-http-request'
+require 'eventmachine'
 
 class Parser
     MAIN_HREF = 'https://www.anime-planet.com'
     COUNT_PROCESS = 4
-    THREAD_COUNT = 10
+    THREAD_COUNT = 1
 
     def parse()        
         # очистка таблиц
@@ -13,6 +13,7 @@ class Parser
         Animegenre.delete_all
         # 
         @count_pages = search_count_pages("#{MAIN_HREF}/anime/all?page=1")
+        @count_pages = 10
         count_pages_for_process = @count_pages / COUNT_PROCESS
         
         search_pages(count_pages_for_process)
@@ -79,19 +80,37 @@ class Parser
             Rails.logger.error(err)
         end
 
-        anime_links.each do |anime_link|
-            begin 
-                href = "#{MAIN_HREF}#{anime_link.attr('href')}"
-                write_anime(href, page_downloader)
-            rescue StandardError => err
-                Rails.logger.error(err)
+        EM.run {
+            multi = EM::MultiRequest.new
+
+            j = 0
+            anime_links.each do |anime_link|
+                begin 
+                    j = j + 1
+                    href = "#{MAIN_HREF}#{anime_link.attr('href')}"
+                    http = EM::HttpRequest.new(href).get
+
+                    http.callback {
+                        write_anime(Nokogiri::HTML(http.response))
+                    }
+
+                    multi.add j, http
+                rescue StandardError => err
+                    Rails.logger.error(err)
+                end
             end
-        end
+
+            multi.callback {
+                p multi.responses[:callback].size
+                p multi.responses[:errback].size
+                EM.stop
+            }
+        }
     end
 
-    def write_anime(href, page_downloader)
+    def write_anime(anime_page) #(href, page_downloader)
         reg_rank = /(\d+).?(\d+)?/
-        anime_page = page_downloader.download(href)
+        #anime_page = page_downloader.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
         main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
         anime = Anime.create
