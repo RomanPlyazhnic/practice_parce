@@ -90,7 +90,7 @@ class Parser
     end
 
     def write_anime(href, page_downloader)
-        reg_rank = /\d+/m
+        reg_rank = /(\d+).?(\d+)?/
         anime_page = page_downloader.download(href)
         top_section = anime_page.xpath("//section[@class='pure-g entryBar']")
         main_section = anime_page.xpath("//div[@class='pure-g entrySynopsis']")
@@ -130,7 +130,7 @@ class Parser
         rank_dom = top_section.xpath("//div[@class='pure-1 md-1-5']")
         
         if rank_dom != nil
-            anime.rank = rank_dom.last.content.scan(reg_rank).first
+            anime.rank = rank_dom.last.content.match(reg_rank).captures.join
         end
 
         # жанры
